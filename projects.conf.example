@@ -1,0 +1,7 @@
+# lfg project registry
+# Format: name|path (one per line, ~ expands to $HOME)
+#
+# Example:
+# myapp|~/projects/myapp
+# backend|~/work/backend-api
+# docs|~/projects/documentation
