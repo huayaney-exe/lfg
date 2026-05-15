@@ -84,6 +84,7 @@ lfg list             # show registered + auto-scanned projects
 lfg add              # register the current dir as a project
 lfg config           # view config; `lfg config agent aider` to change
 lfg doctor           # diagnose dependencies, paths, config
+lfg update           # check for and install the latest lfg-cli
 lfg help             # full command reference
 ```
 
