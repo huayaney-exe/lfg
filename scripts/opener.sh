@@ -8,7 +8,7 @@ export PATH="/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/Applications/cmux.app
 
 CMUX="/Applications/cmux.app/Contents/Resources/bin/cmux"
 SCRIPT_DIR="${0:A:h}"
-STATE_DIR="$SCRIPT_DIR/state"
+STATE_DIR="${LFG_STATE_DIR:-$HOME/.config/lfg/state}"
 WS_ID=$(/usr/bin/cat "$STATE_DIR/workspace-id" 2>/dev/null)
 
 FILE="$1"

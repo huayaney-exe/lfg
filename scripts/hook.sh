@@ -6,7 +6,7 @@
 export PATH="/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/Applications/cmux.app/Contents/Resources/bin:$PATH"
 [[ -z "$HOME" ]] && export HOME=~
 
-STATE_DIR="$HOME/.config/lfg/state"
+STATE_DIR="${LFG_STATE_DIR:-$HOME/.config/lfg/state}"
 MAP_FILE="$STATE_DIR/surface-map"
 ACTIVE_FILE="$STATE_DIR/active-dir"
 CMUX="/Applications/cmux.app/Contents/Resources/bin/cmux"

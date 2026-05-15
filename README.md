@@ -1,8 +1,6 @@
 # lfg
 
-Multi-project workspace launcher for [cmux](https://cmux.dev) + AI coding agents.
-
-Run 1–4 coding agents side by side with a file tree that auto-syncs to the focused pane. Pure zsh. Zero dependencies beyond cmux.
+Multi-agent workspace launcher. Run 1–4 AI coding agents side by side with a file tree that auto-syncs to the focused pane.
 
 ```
 ┌──────────┬────────────────────┬────────────────────┐
@@ -17,44 +15,39 @@ Run 1–4 coding agents side by side with a file tree that auto-syncs to the foc
 └──────────┴────────────────────┴────────────────────┘
 ```
 
-## Why
-
-Working on multiple projects at once with AI agents means switching windows, losing context, and forgetting which agent is where. lfg gives you a single workspace where everything is visible and the file tree always shows the right project.
-
-## Requirements
-
-- [cmux](https://cmux.dev) — modern terminal multiplexer (macOS)
-- zsh (default on macOS)
-- An AI coding agent ([Claude Code](https://docs.anthropic.com/en/docs/claude-code), [aider](https://aider.chat), [Codex](https://github.com/openai/codex), etc.)
+Supports Claude Code, Codex CLI, Cursor Agent, Aider, Gemini CLI, GitHub Copilot CLI, OpenCode — or any command of your choice.
 
 ## Install
 
 ```sh
-git clone https://github.com/huayaney-exe/lfg-launcher.git ~/.config/lfg
-cd ~/.config/lfg
-chmod +x install.sh lfg.sh picker.sh tree.sh opener.sh hook.sh
-./install.sh
+npm i -g lfg-cli     # or: bun i -g lfg-cli
+lfg                  # first run launches the setup wizard
 ```
 
-This adds an `lfg` alias to your `~/.zshrc` and creates a starter `projects.conf`.
-
-## Setup
-
-Edit `~/.config/lfg/projects.conf` — one project per line, `name|path` format:
-
-```
-myapp|~/projects/myapp
-backend|~/work/backend-api
-docs|~/projects/documentation
-```
-
-## Usage
+Or try without installing globally:
 
 ```sh
-lfg
+npx lfg-cli          # bunx lfg-cli
 ```
 
-The picker shows your registered projects. Arrow keys to navigate, Space to toggle (max 4), Enter to launch.
+### Requirements
+
+- Node **≥ 20**
+- A terminal multiplexer:
+  - **macOS:** [cmux](https://cmux.dev) — `brew install --cask cmux`
+  - **Windows / Linux:** Wezterm (in beta — see roadmap)
+- An AI coding agent on your `PATH` (Claude Code, Aider, Codex, etc.) — the setup wizard offers install commands
+
+## Use
+
+```sh
+lfg                  # interactive picker — pick 1–4 projects, launch
+lfg list             # show registered + auto-scanned projects
+lfg add              # register the current dir as a project
+lfg config           # view config; `lfg config agent aider` to change
+lfg doctor           # diagnose dependencies, paths, config
+lfg help             # full command reference
+```
 
 ### File tree controls
 
@@ -65,26 +58,76 @@ The picker shows your registered projects. Arrow keys to navigate, Space to togg
 | Enter (on file) | Open in new cmux tab |
 | `p` | Copy file path to clipboard |
 | `.` | Toggle hidden files |
-| Scroll wheel | Scroll the tree |
+| `Cmd+Shift+U` | Jump to agent needing input |
 
 ### Pane sync
 
-Click any agent pane — the file tree automatically switches to show that project's files. No manual switching needed.
+Click any agent pane — the file tree automatically switches to show that project's files. No manual switching.
 
 ## Configuration
 
-### Agent command
+Config lives at `~/.config/lfg/config.json`:
 
-Defaults to `claude`. Override with the `LFG_AGENT` environment variable:
-
-```sh
-LFG_AGENT=aider lfg
-LFG_AGENT="codex" lfg
+```json
+{
+  "schemaVersion": 1,
+  "projectsDir": "/Users/you/projects",
+  "agent": "claude",
+  "agentLabel": "Claude Code",
+  "mux": "cmux",
+  "projects": {
+    "myapp": { "agent": "aider" }
+  }
+}
 ```
 
-### Adaptive layouts
+Change a setting:
 
-lfg builds the grid based on how many projects you select:
+```sh
+lfg config agent aider              # switch default agent
+lfg config projectsDir ~/code       # switch scan dir
+lfg config edit                     # open in $EDITOR
+lfg config reset                    # re-run setup wizard
+```
+
+### Per-project agent override (planned, schema reserved)
+
+The `projects.<name>.agent` field is already in the schema. CLI command to set it ships in v1.1.
+
+### Environment overrides
+
+For one-off runs without changing config:
+
+```sh
+LFG_AGENT=codex lfg
+LFG_PROJECTS=~/work-mono lfg
+```
+
+## How it works
+
+```
+lfg-cli/  (npm package)
+├── bin/lfg.mjs           # Node entry, routes subcommands
+├── src/
+│   ├── commands/         # setup, launch, list, add, remove, config, doctor, …
+│   ├── runtimes.mjs      # agent registry
+│   ├── config.mjs        # ~/.config/lfg/config.json IO
+│   ├── platform.mjs      # OS + dep detection
+│   ├── prompts.mjs       # zero-dep arrow-key prompts
+│   └── ui.mjs            # colors, banner, helpers
+└── scripts/              # zsh layout + file-tree (cmux backend)
+    ├── lfg.sh
+    ├── picker.sh
+    ├── tree.sh
+    ├── opener.sh
+    └── hook.sh
+```
+
+On macOS with cmux, `lfg launch` shells out to the bundled zsh scripts. The scripts build the workspace, spawn the chosen agent in each pane, and run a polling file-tree that syncs to focus via cmux's `after-select-pane` hook.
+
+Windows/Linux Wezterm backend: planned for v1.1.
+
+## Adaptive layouts
 
 ```
 1 project:  [tree | agent]
@@ -93,28 +136,12 @@ lfg builds the grid based on how many projects you select:
 4 projects: [tree | agent | agent] + [tree spans | agent | agent]
 ```
 
-## Architecture
+## Uninstall
 
+```sh
+lfg uninstall            # removes ~/.config/lfg/ + any legacy zsh alias
+npm uninstall -g lfg-cli # removes the lfg binary
 ```
-~/.config/lfg/
-├── lfg.sh            # Main launcher — workspace creation, layout, agent spawn
-├── picker.sh         # Interactive project selector TUI
-├── tree.sh           # File browser TUI with mouse + keyboard support
-├── opener.sh         # Routes file opens → cmux markdown viewer or editor tab
-├── hook.sh           # Pane focus hook for file tree sync
-├── install.sh        # One-time setup (alias + starter config)
-├── projects.conf     # Your project registry (gitignored)
-└── state/            # Runtime ephemeral state (gitignored)
-```
-
-### How it works
-
-1. **`lfg.sh`** creates a cmux workspace and splits it into an adaptive grid
-2. Each pane gets your agent launched via `cd <project> && <agent command>`
-3. The left pane runs **`tree.sh`** — a custom file browser built in pure zsh with SGR mouse tracking
-4. `tree.sh` polls `cmux identify` every 500ms to detect which pane is focused, maps the surface ID to a project directory via `state/surface-map`, and rebuilds the tree
-5. **`hook.sh`** provides a secondary sync mechanism via cmux's `after-select-pane` hook
-6. **`opener.sh`** handles file opens: markdown files go to cmux's built-in viewer, everything else opens in a new surface tab with `$EDITOR`
 
 ## License
 

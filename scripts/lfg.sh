@@ -8,7 +8,7 @@ export PATH="/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/Applications/cmux.app
 SCRIPT_DIR="${0:A:h}"
 CMUX="/Applications/cmux.app/Contents/Resources/bin/cmux"
 AGENT_CMD="${LFG_AGENT:-claude}"
-STATE_DIR="$SCRIPT_DIR/state"
+STATE_DIR="${LFG_STATE_DIR:-$HOME/.config/lfg/state}"
 
 # ── Validate ──
 [[ ! -x "$CMUX" ]] && echo "  cmux not found" && exit 1

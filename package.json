@@ -1,0 +1,51 @@
+{
+  "name": "lfg-cli",
+  "version": "1.0.0",
+  "description": "Multi-project workspace launcher for AI coding agents (Claude Code, Aider, Codex, Cursor) — one keypress, multiple agents side by side with a file tree that auto-syncs to the focused pane.",
+  "type": "module",
+  "bin": {
+    "lfg": "./bin/lfg.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "scripts",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test 'test/*.test.mjs'",
+    "smoke": "node bin/lfg.mjs --version && node bin/lfg.mjs help"
+  },
+  "os": [
+    "darwin",
+    "win32",
+    "linux"
+  ],
+  "keywords": [
+    "claude-code",
+    "aider",
+    "codex",
+    "cursor",
+    "ai",
+    "agent",
+    "workspace",
+    "multiplexer",
+    "cmux",
+    "wezterm",
+    "tmux"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/huayaney-exe/lfg.git"
+  },
+  "homepage": "https://github.com/huayaney-exe/lfg#readme",
+  "bugs": {
+    "url": "https://github.com/huayaney-exe/lfg/issues"
+  },
+  "author": "Luis Huayaney",
+  "license": "MIT"
+}

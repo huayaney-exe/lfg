@@ -11,7 +11,7 @@ SCRIPT_DIR="${0:A:h}"
 # Suppress stderr (cmux environment noise)
 exec 2>/dev/null
 
-STATE_DIR="$SCRIPT_DIR/state"
+STATE_DIR="${LFG_STATE_DIR:-$HOME/.config/lfg/state}"
 ACTIVE_FILE="$STATE_DIR/active-dir"
 MAP_FILE="$STATE_DIR/surface-map"
 FILES_SURF=$(/usr/bin/cat "$STATE_DIR/files-surface" 2>/dev/null)
