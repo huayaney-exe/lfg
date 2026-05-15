@@ -1,5 +1,7 @@
 // Tiny color + formatting helpers. No deps.
 
+import { openSync, writeSync } from 'node:fs';
+
 const isTTY = process.stdout.isTTY && !process.env.NO_COLOR;
 const wrap = (open, close) => (s) => isTTY ? `\x1b[${open}m${s}\x1b[${close}m` : String(s);
 
@@ -50,26 +52,50 @@ const visibleLen = (s) => s.replace(ANSI_RE, '').length;
  *   ╰─────────────────────────────────────╯
  *
  * Width auto-sizes to fit longest line; min width 56 so short boxes still look intentional.
+ *
+ * `opts.stream` — 'stdout' (default) or 'stderr'. Use 'stderr' for postinstall
+ * messages so npm's stdout buffering doesn't swallow them.
  */
 export function box(title, lines, opts = {}) {
   const INNER_PAD = 2;
   const MIN_WIDTH = opts.minWidth ?? 56;
+
+  // Stream selection:
+  // - 'tty'    : write directly to /dev/tty (bypasses npm postinstall buffering).
+  //              Falls back to stderr if /dev/tty isn't available (Windows, CI).
+  // - 'stderr' : write to stderr.
+  // - default  : stdout.
+  let write;
+  if (opts.stream === 'tty') {
+    let ttyFd = null;
+    if (process.platform !== 'win32') {
+      try { ttyFd = openSync('/dev/tty', 'w'); } catch { /* no controlling tty */ }
+    }
+    write = ttyFd !== null
+      ? (s) => writeSync(ttyFd, s + '\n')
+      : (s) => process.stderr.write(s + '\n');
+  } else if (opts.stream === 'stderr') {
+    write = (s) => process.stderr.write(s + '\n');
+  } else {
+    write = (s) => process.stdout.write(s + '\n');
+  }
+
   const maxLine = Math.max(0, ...lines.map(visibleLen));
   const titleLen = visibleLen(title);
   const inner = Math.max(maxLine + INNER_PAD * 2, MIN_WIDTH, titleLen + 4);
-  const dashRight = Math.max(1, inner - titleLen - 4); // "─ TITLE " takes (titleLen + 3) + closing space
+  const dashRight = Math.max(1, inner - titleLen - 4);
   const pad = (line) => {
     const fill = inner - visibleLen(line) - INNER_PAD;
     return '  │  ' + line + ' '.repeat(Math.max(0, fill)) + '│';
   };
   const emptyLine = '  │' + ' '.repeat(inner) + '│';
-  console.log('');
-  console.log('  ╭─ ' + title + ' ' + '─'.repeat(dashRight) + '╮');
-  console.log(emptyLine);
-  for (const l of lines) console.log(pad(l));
-  console.log(emptyLine);
-  console.log('  ╰' + '─'.repeat(inner) + '╯');
-  console.log('');
+  write('');
+  write('  ╭─ ' + title + ' ' + '─'.repeat(dashRight) + '╮');
+  write(emptyLine);
+  for (const l of lines) write(pad(l));
+  write(emptyLine);
+  write('  ╰' + '─'.repeat(inner) + '╯');
+  write('');
 }
 
 /**

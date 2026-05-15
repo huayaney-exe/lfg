@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.0.3 — 2026-05-15
+
+### Added
+- `bin/postinstall.mjs` — runs after `npm i -g lfg-cli` and prints a framed
+  "✓ Installed" box with next-step instructions. Triggered only on global
+  installs (`npm_config_global=true`); silent for local installs, dependency
+  installs, and CI runs.
+- `box(..., { stream: 'tty' })` — bypasses npm 7+'s lifecycle-script stdio
+  buffering by writing directly to `/dev/tty`. Falls back to stderr where
+  no controlling tty exists (Windows, CI, headless installers).
+
+### Why
+A Windows user (nicol) ran `npm i -g lfg-cli`, saw "added 1 package in 2s"
+and was unsure if she was done. She then followed the README's Mac/Linux
+curl|bash command and hit "bash: command not found." The postinstall box
+makes the "you're done, type `lfg`" message unambiguous — at least on
+Mac/Linux where /dev/tty cooperates. Windows users still rely on the
+README's platform-specific install section (v1.0.2) which is now clear.
+
 ## 1.0.2 — 2026-05-15
 
 ### Didactic UX pass

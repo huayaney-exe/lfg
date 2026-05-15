@@ -1,6 +1,6 @@
 {
   "name": "lfg-cli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Multi-project workspace launcher for AI coding agents (Claude Code, Aider, Codex, Cursor) — one keypress, multiple agents side by side with a file tree that auto-syncs to the focused pane.",
   "type": "module",
   "bin": {
@@ -20,7 +20,8 @@
     "test": "node --test",
     "lint": "node scripts/lint.mjs",
     "smoke": "node bin/lfg.mjs --version && node bin/lfg.mjs help",
-    "verify": "npm run lint && npm test && npm run smoke"
+    "verify": "npm run lint && npm test && npm run smoke",
+    "postinstall": "node bin/postinstall.mjs"
   },
   "os": [
     "darwin",
