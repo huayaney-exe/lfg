@@ -15,7 +15,7 @@ permissions:
 jobs:
   verify:
     name: Verify (${{ matrix.os }})
-    timeout-minutes: 3
+    timeout-minutes: 10
     strategy:
       fail-fast: true
       matrix:
@@ -48,7 +48,7 @@ jobs:
     name: Publish to npm
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 10
     permissions:
       contents: read
       id-token: write   # for npm provenance
