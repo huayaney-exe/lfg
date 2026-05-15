@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.1.0 — 2026-05-15
+
+### Added
+- Picker `MAX_SELECT` raised from 4 → 8. The interactive picker now accepts
+  up to 8 projects per launch.
+- Layout branches for N=5..8 in `scripts/lfg.sh`. Pattern follows the
+  existing 2-row ceil/floor split:
+  - N=5: top row 3 cells, bottom row 2 cells
+  - N=6: top row 3 cells, bottom row 3 cells
+  - N=7: top row 4 cells, bottom row 3 cells
+  - N=8: top row 4 cells, bottom row 4 cells
+- `split_right` / `split_down` helper functions to keep new branches
+  readable without refactoring the existing N=1..4 cases.
+
+### Why
+Requested by a user running multiple long-horizon agent tasks in parallel.
+Four panes was the original ceiling because the explicit-branch layout
+code didn't extend further; nothing in cmux limited us. The cap was
+purely a script-side artifact.
+
+### Caveat
+cmux's `new-split right` halves the target surface, so chaining right-splits
+off the newest surface yields progressively narrower cells (the rightmost
+pane in a 4-cell row is ~12.5% of the row width). For evenly sized cells,
+use `cmux resize-pane` after launch. A future release may auto-balance.
+
 ## 1.0.3 — 2026-05-15
 
 ### Added
