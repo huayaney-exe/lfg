@@ -14,11 +14,13 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
-    "test": "node --test 'test/*.test.mjs'",
-    "smoke": "node bin/lfg.mjs --version && node bin/lfg.mjs help"
+    "test": "node --test",
+    "lint": "node scripts/lint.mjs",
+    "smoke": "node bin/lfg.mjs --version && node bin/lfg.mjs help",
+    "verify": "npm run lint && npm test && npm run smoke"
   },
   "os": [
     "darwin",

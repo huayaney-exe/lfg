@@ -32,7 +32,7 @@ npx lfg-cli          # bunx lfg-cli
 
 ### Requirements
 
-- Node **≥ 20**
+- Node **≥ 22** (current active LTS)
 - A terminal multiplexer:
   - **macOS:** [cmux](https://cmux.dev) — `brew install --cask cmux`
   - **Windows / Linux:** Wezterm (in beta — see roadmap)

@@ -4,22 +4,95 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    # Weekly catch for ecosystem drift (e.g. Node minor release breaks us)
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/lint.mjs
+
   test:
+    name: Test
+    needs: lint
+    timeout-minutes: 3
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        node: ['20', '22']
+        node: ['22', '24']
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - name: Smoke
+      - name: Smoke (bin executes)
         run: node bin/lfg.mjs --version
-      - name: Tests
-        run: node --test "test/*.test.mjs"
-        shell: bash
+      - name: Unit tests
+        run: node --test
+      - name: Help renders
+        run: node bin/lfg.mjs help
+
+  pack:
+    name: Pack + install
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build tarball
+        id: pack
+        run: |
+          npm pack --silent > /dev/null
+          TARBALL=$(ls lfg-cli-*.tgz | head -1)
+          echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
+      - name: Verify tarball contents
+        run: |
+          TARBALL="${{ steps.pack.outputs.tarball }}"
+          tar -tzf "$TARBALL" | sort > /tmp/actual.txt
+          for required in \
+            package/package.json \
+            package/bin/lfg.mjs \
+            package/src/commands/setup.mjs \
+            package/src/commands/launch.mjs \
+            package/src/commands/doctor.mjs \
+            package/src/runtimes.mjs \
+            package/src/config.mjs \
+            package/scripts/lfg.sh \
+            package/scripts/picker.sh \
+            package/scripts/tree.sh \
+            package/README.md \
+            package/LICENSE
+          do
+            grep -q "^${required}$" /tmp/actual.txt || { echo "Missing from tarball: $required"; exit 1; }
+          done
+          echo "Tarball contents look good."
+      - name: Install globally + run
+        run: |
+          TARBALL="${{ steps.pack.outputs.tarball }}"
+          PREFIX=$(mktemp -d)
+          npm install -g --prefix "$PREFIX" "./$TARBALL"
+          export HOME=$(mktemp -d)
+          "$PREFIX/bin/lfg" --version
+          "$PREFIX/bin/lfg" help > /dev/null
+          "$PREFIX/bin/lfg" doctor --json

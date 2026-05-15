@@ -28,3 +28,13 @@ First Node-CLI release.
 ### Removed
 - Manual `git clone` install path from README (still works, but no longer the
   documented flow).
+
+### CI / dev
+- `engines.node` bumped to `>=22` (Node 20 reached EOL on 2026-04-30).
+- CI now runs three jobs: `lint` → `test` matrix (3 OS × Node 22, 24) → `pack`
+  (tarball contents + global-install smoke). Lint catches syntax + packaging
+  errors before paying for the matrix.
+- Added `.github/workflows/release.yml`: tag-triggered (`v*`) pipeline that
+  re-verifies on all 3 OSes before publishing to npm with provenance.
+- Cross-platform `scripts/lint.mjs` replaces shell-loop lint.
+- `node --test` uses the runner's built-in auto-discovery — no glob handling.
