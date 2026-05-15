@@ -30,8 +30,21 @@ if [[ -n "$EXISTING" ]]; then
 fi
 
 # ── Pick projects ──
+# Source priority:
+#   1. $LFG_PROJECTS  (explicit override — file or directory)
+#   2. ~/projects     (auto-scan when present)
+#   3. projects.conf  (curated fallback)
+LFG_SOURCE="${LFG_PROJECTS:-}"
+if [[ -z "$LFG_SOURCE" ]]; then
+  if [[ -d "$HOME/projects" ]]; then
+    LFG_SOURCE="$HOME/projects"
+  else
+    LFG_SOURCE="$SCRIPT_DIR/projects.conf"
+  fi
+fi
+
 echo ""
-SELECTED=("${(@f)$("$SCRIPT_DIR/picker.sh" "$SCRIPT_DIR/projects.conf")}")
+SELECTED=("${(@f)$("$SCRIPT_DIR/picker.sh" "$LFG_SOURCE")}")
 N=${#SELECTED[@]}
 [[ $N -eq 0 ]] && echo "  No projects selected." && exit 0
 
