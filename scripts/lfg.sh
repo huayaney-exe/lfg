@@ -81,6 +81,23 @@ sleep 0.2
 FILES_PANE=$("$CMUX" list-panes --workspace "$WS_ID" 2>&1 | /usr/bin/grep -oE 'pane:[0-9]+' | /usr/bin/head -1)
 [[ -n "$FILES_PANE" ]] && "$CMUX" resize-pane --pane "$FILES_PANE" --workspace "$WS_ID" -L --amount 25 &>/dev/null
 
+# Helpers for N>=5 layouts. Echo the new surface ID; pace splits with sleep.
+# Note: cmux halves the target surface on each split, so chained right-splits
+# off the newest surface yield progressively narrower panes on the right.
+# For evenly sized cells, balance manually with cmux resize-pane after launch.
+split_right() {
+  local out
+  out=$("$CMUX" new-split right --surface "$1" --workspace "$WS_ID" 2>&1)
+  echo "$out" | /usr/bin/grep -oE 'surface:[0-9]+'
+  sleep 0.2
+}
+split_down() {
+  local out
+  out=$("$CMUX" new-split down --surface "$1" --workspace "$WS_ID" 2>&1)
+  echo "$out" | /usr/bin/grep -oE 'surface:[0-9]+'
+  sleep 0.2
+}
+
 SURF_LIST=()
 
 if (( N == 1 )); then
@@ -121,6 +138,44 @@ elif (( N == 4 )); then
   SURF_4=$(echo "$SPLIT4" | /usr/bin/grep -oE 'surface:[0-9]+')
   SURF_LIST=("$MAIN_SURF" "$SURF_2" "$BOTTOM_SURF" "$SURF_4")
   sleep 0.2
+
+elif (( N == 5 )); then
+  # Top: c1 | c2 | c3   Bottom: c4 | c5
+  BOTTOM_SURF=$(split_down "$MAIN_SURF")
+  SURF_2=$(split_right "$MAIN_SURF")
+  SURF_3=$(split_right "$SURF_2")
+  SURF_5=$(split_right "$BOTTOM_SURF")
+  SURF_LIST=("$MAIN_SURF" "$SURF_2" "$SURF_3" "$BOTTOM_SURF" "$SURF_5")
+
+elif (( N == 6 )); then
+  # Top: c1 | c2 | c3   Bottom: c4 | c5 | c6
+  BOTTOM_SURF=$(split_down "$MAIN_SURF")
+  SURF_2=$(split_right "$MAIN_SURF")
+  SURF_3=$(split_right "$SURF_2")
+  SURF_5=$(split_right "$BOTTOM_SURF")
+  SURF_6=$(split_right "$SURF_5")
+  SURF_LIST=("$MAIN_SURF" "$SURF_2" "$SURF_3" "$BOTTOM_SURF" "$SURF_5" "$SURF_6")
+
+elif (( N == 7 )); then
+  # Top: c1 | c2 | c3 | c4   Bottom: c5 | c6 | c7
+  BOTTOM_SURF=$(split_down "$MAIN_SURF")
+  SURF_2=$(split_right "$MAIN_SURF")
+  SURF_3=$(split_right "$SURF_2")
+  SURF_4=$(split_right "$SURF_3")
+  SURF_6=$(split_right "$BOTTOM_SURF")
+  SURF_7=$(split_right "$SURF_6")
+  SURF_LIST=("$MAIN_SURF" "$SURF_2" "$SURF_3" "$SURF_4" "$BOTTOM_SURF" "$SURF_6" "$SURF_7")
+
+elif (( N == 8 )); then
+  # Top: c1 | c2 | c3 | c4   Bottom: c5 | c6 | c7 | c8
+  BOTTOM_SURF=$(split_down "$MAIN_SURF")
+  SURF_2=$(split_right "$MAIN_SURF")
+  SURF_3=$(split_right "$SURF_2")
+  SURF_4=$(split_right "$SURF_3")
+  SURF_6=$(split_right "$BOTTOM_SURF")
+  SURF_7=$(split_right "$SURF_6")
+  SURF_8=$(split_right "$SURF_7")
+  SURF_LIST=("$MAIN_SURF" "$SURF_2" "$SURF_3" "$SURF_4" "$BOTTOM_SURF" "$SURF_6" "$SURF_7" "$SURF_8")
 fi
 
 # ── Write surface → directory map ──

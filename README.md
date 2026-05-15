@@ -1,6 +1,6 @@
 # lfg
 
-Multi-agent workspace launcher. Run 1–4 AI coding agents side by side with a file tree that auto-syncs to the focused pane.
+Multi-agent workspace launcher. Run 1–8 AI coding agents side by side with a file tree that auto-syncs to the focused pane.
 
 ```
 ┌──────────┬────────────────────┬────────────────────┐
@@ -79,7 +79,7 @@ Note: `npx` doesn't put `lfg` on your PATH — you'd have to keep prefixing ever
 ## Use
 
 ```sh
-lfg                  # interactive picker — pick 1–4 projects, launch
+lfg                  # interactive picker — pick 1–8 projects, launch
 lfg list             # show registered + auto-scanned projects
 lfg add              # register the current dir as a project
 lfg config           # view config; `lfg config agent aider` to change
@@ -172,6 +172,10 @@ Windows/Linux Wezterm backend: planned for v1.1.
 2 projects: [tree | agent | agent]
 3 projects: [tree | agent | agent] + [tree spans | agent]
 4 projects: [tree | agent | agent] + [tree spans | agent | agent]
+5 projects: [tree | a | a | a] + [tree spans | a | a]
+6 projects: [tree | a | a | a] + [tree spans | a | a | a]
+7 projects: [tree | a | a | a | a] + [tree spans | a | a | a]
+8 projects: [tree | a | a | a | a] + [tree spans | a | a | a | a]
 ```
 
 ## Uninstall
