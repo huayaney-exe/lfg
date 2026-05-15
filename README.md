@@ -30,6 +30,26 @@ Or try without installing globally:
 npx lfg-cli          # bunx lfg-cli
 ```
 
+### Hitting `EACCES` on macOS / Linux?
+
+If `npm i -g` fails with `permission denied` writing to `/usr/local/lib/node_modules/`, that's a standard npm permission issue with the default Node install — not specific to `lfg-cli`. Pick one fix:
+
+```sh
+# Easiest: install via Bun (manages globals in user-owned dir)
+brew install oven-sh/bun/bun && bun i -g lfg-cli
+
+# Or: switch to a Node version manager (recommended long-term)
+brew install fnm && fnm install 22 && fnm use 22
+npm i -g lfg-cli
+
+# Or: reconfigure npm prefix without changing Node
+mkdir -p ~/.npm-global && npm config set prefix ~/.npm-global
+echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.zshrc && source ~/.zshrc
+npm i -g lfg-cli
+```
+
+Avoid `sudo npm i -g` — works but leaves root-owned files in your Node install that bite later.
+
 ### Requirements
 
 - Node **≥ 22** (current active LTS)
