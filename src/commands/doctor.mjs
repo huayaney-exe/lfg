@@ -65,6 +65,8 @@ export default async function doctor({ args }) {
     ok(c.green('All checks passed. lfg is ready.'));
   } else {
     fail(c.red(`${issues} issue(s) need attention.`));
+    blank();
+    process.exit(1);
   }
   blank();
 }
@@ -86,5 +88,7 @@ function doctorJson() {
   };
   result.ok = result.config && result.scripts && result.muxInstalled;
   console.log(JSON.stringify(result, null, 2));
-  process.exit(result.ok ? 0 : 1);
+  // --json always exits 0 if the diagnostic itself ran. The `ok` field in the
+  // output is the diagnosis — consumers parse the JSON, they don't need exit code.
+  // Text-mode doctor still exits non-zero on issues for shell-script ergonomics.
 }
