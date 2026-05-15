@@ -29,6 +29,16 @@ First Node-CLI release.
 - Manual `git clone` install path from README (still works, but no longer the
   documented flow).
 
+### Auto-install during setup
+- Setup wizard now offers to install missing dependencies in-place instead
+  of just printing the command. On macOS it runs `brew install --cask cmux`;
+  on Windows `winget install wez.wezterm`; for the agent runtime it runs
+  whatever install command the registry specifies (npm / pip / curl / gh).
+- Always confirms before running — never silent. Failures are non-fatal:
+  the wizard continues and the user can fix later via `lfg doctor`.
+- Detects the package manager from the install command's first token; if
+  the PM isn't on `PATH`, prints fallback guidance instead of dying mid-run.
+
 ### CI / dev
 - `engines.node` bumped to `>=22` (Node 20 reached EOL on 2026-04-30).
 - CI now runs three jobs: `lint` → `test` matrix (3 OS × Node 22, 24) → `pack`

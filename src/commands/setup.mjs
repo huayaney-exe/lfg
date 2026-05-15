@@ -7,8 +7,9 @@ import { join } from 'node:path';
 import { c, banner, header, ok, info, warn, fail, blank, hint, layoutPreview } from '../ui.mjs';
 import { confirm, select, input } from '../prompts.mjs';
 import { CONFIG_DIR, SCRIPTS_DIR, defaultConfig, saveConfig, loadConfig } from '../config.mjs';
-import { IS_MAC, IS_WIN, IS_LINUX, detectMux, checkDeps, CMUX_BIN } from '../platform.mjs';
+import { IS_MAC, IS_WIN, IS_LINUX, detectMux, checkDeps, CMUX_BIN, hasCommand } from '../platform.mjs';
 import { RUNTIMES, detectInstalledRuntimes } from '../runtimes.mjs';
+import { offerInstall } from '../install.mjs';
 
 export default async function setup({ pkgRoot }) {
   banner();
@@ -36,19 +37,40 @@ export default async function setup({ pkgRoot }) {
   const deps = checkDeps();
   ok(`Node ${deps.node.version}`);
 
-  if (!deps.mux.ok) {
+  let muxReady = deps.mux.ok;
+  if (!muxReady) {
     fail('No supported terminal multiplexer found.');
-    if (IS_MAC) {
-      info(`Install ${c.bold('cmux')}:  ${c.cyan('brew install --cask cmux')}  ${c.dim('(or https://cmux.dev)')}`);
-    } else if (IS_WIN) {
-      info(`Install ${c.bold('Wezterm')}:  ${c.cyan('winget install wez.wezterm')}`);
-      warn('Note: Windows backend (Wezterm) is in beta. See README.');
-    } else {
-      info(`Install ${c.bold('Wezterm')}:  ${c.cyan('https://wezfurlong.org/wezterm/install/linux.html')}`);
-    }
     blank();
-    const proceed = await confirm('Continue setup anyway?', false);
-    if (!proceed) return;
+
+    let result = { installed: false, ran: false };
+    if (IS_MAC) {
+      result = await offerInstall({
+        label: 'cmux',
+        command: 'brew install --cask cmux',
+        verify: () => existsSync(CMUX_BIN),
+        packageManager: 'brew',
+        fallback: 'Install Homebrew first (https://brew.sh).',
+      });
+    } else if (IS_WIN) {
+      result = await offerInstall({
+        label: 'Wezterm',
+        command: 'winget install wez.wezterm',
+        verify: () => hasCommand('wezterm'),
+        packageManager: 'winget',
+        fallback: 'Install winget (Windows 10+) or download from https://wezfurlong.org/wezterm/',
+      });
+      if (result.installed) warn('Windows backend (Wezterm) is in beta.');
+    } else {
+      info('Install Wezterm: ' + c.cyan('https://wezfurlong.org/wezterm/install/linux.html'));
+      info('Then re-run ' + c.cyan('lfg setup') + '.');
+    }
+    muxReady = result.installed;
+
+    if (!muxReady) {
+      blank();
+      const proceed = await confirm('Continue setup without a multiplexer?', false);
+      if (!proceed) return;
+    }
   } else {
     ok(`${deps.mux.name} found`);
   }
@@ -85,12 +107,18 @@ export default async function setup({ pkgRoot }) {
   const agentId = await select('Default agent runtime:', runtimeOpts, 0);
   const runtime = RUNTIMES.find(r => r.id === agentId);
 
-  if (!installed.find(r => r.id === agentId).installed && runtime.install) {
+  const alreadyHaveAgent = installed.find(r => r.id === agentId).installed;
+  if (!alreadyHaveAgent && runtime.install) {
     blank();
-    console.log('  ' + c.dim('Install command: ') + c.cyan(runtime.install));
-    if (runtime.docs) console.log('  ' + c.dim('Docs: ') + c.dim(runtime.docs));
-    blank();
-    info('lfg will use ' + c.bold(runtime.label) + ' once it\'s on your PATH.');
+    const agentBin = runtime.cmd.split(' ')[0];
+    const result = await offerInstall({
+      label: runtime.label,
+      command: runtime.install,
+      verify: () => hasCommand(agentBin),
+    });
+    if (!result.installed && runtime.docs) {
+      info('Docs: ' + c.dim(runtime.docs));
+    }
   }
 
   // --- 4. Write config + install scripts ---
