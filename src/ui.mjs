@@ -35,6 +35,64 @@ export function hint(msg) {
   console.log('  ' + c.dim(msg));
 }
 
+// Strip ANSI escapes for visible width calculation.
+const ANSI_RE = /\x1b\[[0-9;]*m/g;
+const visibleLen = (s) => s.replace(ANSI_RE, '').length;
+
+/**
+ * Render a teaching box with title + content lines.
+ *
+ *   ╭─ TITLE ─────────────────────────────╮
+ *   │                                     │
+ *   │  content line 1                     │
+ *   │  content line 2                     │
+ *   │                                     │
+ *   ╰─────────────────────────────────────╯
+ *
+ * Width auto-sizes to fit longest line; min width 56 so short boxes still look intentional.
+ */
+export function box(title, lines, opts = {}) {
+  const INNER_PAD = 2;
+  const MIN_WIDTH = opts.minWidth ?? 56;
+  const maxLine = Math.max(0, ...lines.map(visibleLen));
+  const titleLen = visibleLen(title);
+  const inner = Math.max(maxLine + INNER_PAD * 2, MIN_WIDTH, titleLen + 4);
+  const dashRight = Math.max(1, inner - titleLen - 4); // "─ TITLE " takes (titleLen + 3) + closing space
+  const pad = (line) => {
+    const fill = inner - visibleLen(line) - INNER_PAD;
+    return '  │  ' + line + ' '.repeat(Math.max(0, fill)) + '│';
+  };
+  const emptyLine = '  │' + ' '.repeat(inner) + '│';
+  console.log('');
+  console.log('  ╭─ ' + title + ' ' + '─'.repeat(dashRight) + '╮');
+  console.log(emptyLine);
+  for (const l of lines) console.log(pad(l));
+  console.log(emptyLine);
+  console.log('  ╰' + '─'.repeat(inner) + '╯');
+  console.log('');
+}
+
+/**
+ * Render a 4-line error teaching block.
+ *
+ *   ✗ What failed
+ *     Why: root cause
+ *     Fix: action
+ *     More: link / `lfg help X`
+ *
+ * `why`, `fix`, `more` are optional but `what` is required.
+ * Exits the process with `exitCode` if provided.
+ */
+export function errorBlock({ what, why, fix, more, exitCode }) {
+  console.log('');
+  console.log('  ' + c.red('✗ ') + c.bold(what));
+  if (why)  console.log('    ' + c.dim('Why: ') + why);
+  if (fix)  console.log('    ' + c.dim('Fix: ') + c.cyan(fix));
+  if (more) console.log('    ' + c.dim('More: ') + c.dim(more));
+  console.log('');
+  if (exitCode !== undefined) process.exit(exitCode);
+}
+
 export function layoutPreview(n = 2) {
   const tree = c.cyan('files');
   const agent = (i) => c.green(`agent ${i}`);

@@ -6,15 +6,19 @@ import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { c, banner, fail, warn, info, blank } from '../ui.mjs';
+import { c, banner, fail, warn, info, blank, errorBlock } from '../ui.mjs';
 import { loadConfig, SCRIPTS_DIR, STATE_DIR } from '../config.mjs';
 import { IS_MAC, IS_WIN, CMUX_BIN, detectMux } from '../platform.mjs';
 
 export default async function launch({ args }) {
   const cfg = loadConfig();
   if (!cfg) {
-    fail('No config. Run ' + c.cyan('lfg setup') + ' first.');
-    process.exit(1);
+    errorBlock({
+      what: 'No lfg config found',
+      why: "You haven't run setup yet",
+      fix: 'lfg setup',
+      exitCode: 1,
+    });
   }
 
   const mux = cfg.mux || detectMux();
@@ -26,24 +30,28 @@ export default async function launch({ args }) {
     return launchWezterm(cfg, args);
   }
 
-  banner();
-  fail('No supported terminal multiplexer detected.');
-  if (IS_WIN) {
-    info('Install Wezterm: ' + c.cyan('winget install wez.wezterm'));
-    warn('Note: Wezterm driver is in beta for Windows.');
-  } else if (IS_MAC) {
-    info('Install cmux: ' + c.cyan('brew install --cask cmux'));
-  }
-  blank();
-  process.exit(1);
+  errorBlock({
+    what: 'No supported terminal multiplexer detected',
+    why: IS_MAC ? 'lfg uses cmux on macOS' :
+         IS_WIN ? 'lfg uses Wezterm on Windows' :
+                  'lfg uses Wezterm on Linux',
+    fix: IS_MAC ? 'brew install --cask cmux' :
+         IS_WIN ? 'winget install wez.wezterm' :
+                  'See https://wezfurlong.org/wezterm/install/linux.html',
+    more: IS_WIN || !IS_MAC ? 'Wezterm backend is in beta — Mac+cmux is most stable today' : undefined,
+    exitCode: 1,
+  });
 }
 
 function launchCmux(cfg, args) {
   const script = join(SCRIPTS_DIR, 'lfg.sh');
   if (!existsSync(script)) {
-    fail('Scripts not found at ' + c.cyan(SCRIPTS_DIR));
-    info('Re-run ' + c.cyan('lfg setup') + ' to reinstall.');
-    process.exit(1);
+    errorBlock({
+      what: 'Bundled scripts not found at ' + SCRIPTS_DIR,
+      why: 'Setup never completed, or the scripts dir was deleted',
+      fix: 'lfg setup',
+      exitCode: 1,
+    });
   }
 
   const env = {

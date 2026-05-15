@@ -8,7 +8,7 @@
 import { spawnSync } from 'node:child_process';
 import { homedir } from 'node:os';
 
-import { c, banner, ok, fail, blank, header } from '../ui.mjs';
+import { c, banner, ok, fail, blank, header, errorBlock } from '../ui.mjs';
 import { loadConfig, saveConfig, CONFIG_PATH } from '../config.mjs';
 import { findRuntime } from '../runtimes.mjs';
 
@@ -22,7 +22,14 @@ export default async function config({ args, pkgRoot }) {
   }
 
   const cfg = loadConfig();
-  if (!cfg) { fail('No config. Run ' + c.cyan('lfg setup') + ' first.'); process.exit(1); }
+  if (!cfg) {
+    errorBlock({
+      what: 'No lfg config found',
+      why: "You haven't run setup yet",
+      fix: 'lfg setup',
+      exitCode: 1,
+    });
+  }
 
   // No args → show all
   if (args.length === 0) {
@@ -43,9 +50,13 @@ export default async function config({ args, pkgRoot }) {
 
   const key = args[0];
   if (!ALLOWED_KEYS.has(key)) {
-    fail(`Unknown key: ${key}`);
-    console.log('  ' + c.dim('Allowed: ') + [...ALLOWED_KEYS].join(', '));
-    process.exit(1);
+    errorBlock({
+      what: `Unknown config key: ${key}`,
+      why: `Allowed keys: ${[...ALLOWED_KEYS].join(', ')}`,
+      fix: 'lfg config              # show current values',
+      more: 'lfg config edit         # edit JSON directly',
+      exitCode: 1,
+    });
   }
 
   // One arg → show

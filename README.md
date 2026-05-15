@@ -19,54 +19,62 @@ Supports Claude Code, Codex CLI, Cursor Agent, Aider, Gemini CLI, GitHub Copilot
 
 ## Install
 
-**One-line installer** (recommended — auto-handles npm permissions, never uses sudo):
+Pick the command for your platform. Each one is **safe and one line**.
 
+### 🪟 Windows
+
+```powershell
+npm i -g lfg-cli
+```
+
+That's it. Windows puts `npm` globals in `%AppData%\npm\` (user-owned), so no permission tricks needed.
+
+### 🍎 macOS / 🐧 Linux
+
+If you have **Bun**:
+```sh
+bun i -g lfg-cli
+```
+
+If you have **npm** (the standard case):
 ```sh
 curl -fsSL https://raw.githubusercontent.com/huayaney-exe/lfg/main/install.sh | bash
 ```
 
-The script picks Bun if you have it, falls back to npm, and reconfigures the npm prefix to a user-owned dir if needed.
+> **What that curl line does, in plain English:**
+>
+> ① Downloads the [install script](./install.sh) from this repo.
+> ② Runs it through `bash`. The script picks the best installer for your system.
+> ③ If your `npm` prefix needs `sudo` (the default on macOS Node installs), the script switches you to a user-owned prefix at `~/.npm-global` and adds it to your `PATH` — **never uses sudo**.
+>
+> After it finishes, follow the framed **Last step** box at the bottom of its output.
 
-**Or install manually with your package manager:**
+### Verify
 
-```sh
-npm i -g lfg-cli              # or: bun i -g lfg-cli
-lfg                           # first run launches the setup wizard
-```
-
-**Or try without installing globally:**
-
-```sh
-npx lfg-cli                   # bunx lfg-cli
-```
-
-### Hitting `EACCES` with manual `npm i -g`?
-
-The one-line installer above handles this automatically. If you prefer to fix it yourself:
+After install, open a **new terminal** (or `source ~/.zshrc` first) and run:
 
 ```sh
-# Easiest: install via Bun (manages globals in user-owned dir)
-brew install oven-sh/bun/bun && bun i -g lfg-cli
-
-# Or: switch to a Node version manager (recommended long-term)
-brew install fnm && fnm install 22 && fnm use 22
-npm i -g lfg-cli
-
-# Or: reconfigure npm prefix without changing Node
-mkdir -p ~/.npm-global && npm config set prefix ~/.npm-global
-echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.zshrc && source ~/.zshrc
-npm i -g lfg-cli
+lfg --version    # → 1.0.2
+lfg              # launches the setup wizard
 ```
 
-Avoid `sudo npm i -g` — works but leaves root-owned files in your Node install that bite later.
+If `lfg: command not found`, your shell hasn't reloaded yet. Open a fresh terminal window and try again.
+
+### Try without installing
+
+```sh
+npx lfg-cli      # or: bunx lfg-cli
+```
+
+Note: `npx` doesn't put `lfg` on your PATH — you'd have to keep prefixing every command. Fine for trying, not for daily use.
 
 ### Requirements
 
 - Node **≥ 22** (current active LTS)
 - A terminal multiplexer:
-  - **macOS:** [cmux](https://cmux.dev) — `brew install --cask cmux`
+  - **macOS:** [cmux](https://cmux.dev) — the setup wizard offers to install it for you (`brew install --cask cmux`)
   - **Windows / Linux:** Wezterm (in beta — see roadmap)
-- An AI coding agent on your `PATH` (Claude Code, Aider, Codex, etc.) — the setup wizard offers install commands
+- An AI coding agent on your `PATH` (Claude Code, Aider, Codex, Cursor Agent, Aider, Gemini CLI, GitHub Copilot CLI, OpenCode) — the setup wizard offers install commands and runs them for you
 
 ## Use
 

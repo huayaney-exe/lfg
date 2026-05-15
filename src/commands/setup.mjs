@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readdirSync, cpSync, chmodSync, readFileSync, wr
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-import { c, banner, header, ok, info, warn, fail, blank, hint, layoutPreview } from '../ui.mjs';
+import { c, banner, header, ok, info, warn, fail, blank, hint, layoutPreview, box } from '../ui.mjs';
 import { confirm, select, input } from '../prompts.mjs';
 import { CONFIG_DIR, SCRIPTS_DIR, defaultConfig, saveConfig, loadConfig } from '../config.mjs';
 import { IS_MAC, IS_WIN, IS_LINUX, detectMux, checkDeps, CMUX_BIN, hasCommand } from '../platform.mjs';
@@ -79,7 +79,8 @@ export default async function setup({ pkgRoot }) {
 
   // --- 2. Projects directory ---
   header('2. Where do you keep your code projects?');
-  hint('lfg auto-scans this folder. Anything you git clone here becomes selectable.');
+  hint('This is the folder lfg auto-scans. Any subdirectory becomes a project');
+  hint('you can pick when you run `lfg`. Most devs use ~/projects.');
   const homeProjects = join(homedir(), 'projects');
   const projectsDir = await chooseProjectsDir(homeProjects);
   if (!existsSync(projectsDir)) {
@@ -97,7 +98,8 @@ export default async function setup({ pkgRoot }) {
 
   // --- 3. Agent runtime ---
   header('3. Pick your default coding agent');
-  hint('This is what lfg launches in each pane. You can switch per-project later.');
+  hint('lfg spawns this command in every pane. You can override per-project later');
+  hint('via `lfg config agent <name>`. Picks marked `installed` are already on PATH.');
   const installed = detectInstalledRuntimes();
   const runtimeOpts = installed.map(r => ({
     label: r.label,
@@ -140,18 +142,23 @@ export default async function setup({ pkgRoot }) {
   // Remove any legacy zsh alias so the new Node bin takes over
   removeLegacyAlias();
 
-  // --- 5. Preview ---
-  blank();
-  header('Setup complete');
+  // --- 5. Done ---
   layoutPreview();
 
-  console.log('  ' + c.bold('Next:'));
-  console.log('    ' + c.cyan('lfg') + c.dim('              launch the picker'));
-  console.log('    ' + c.cyan('lfg list') + c.dim('         show registered projects'));
-  console.log('    ' + c.cyan('lfg add <path>') + c.dim('   register a project outside ') + c.cyan(projectsDir));
-  console.log('    ' + c.cyan('lfg doctor') + c.dim('       diagnose any issues'));
-  console.log('    ' + c.cyan('lfg help') + c.dim('         see all commands'));
-  blank();
+  box(c.green('✓') + ' Setup complete', [
+    c.bold('lfg is ready to launch.'),
+    '',
+    c.bold('➊') + '  Launch the picker (pick 1–4 projects):',
+    '    ' + c.cyan('$ lfg'),
+    '',
+    c.bold('➋') + '  ' + c.dim('See registered projects:'),
+    '    ' + c.cyan('$ lfg list'),
+    '',
+    c.bold('➌') + '  ' + c.dim('Diagnose issues:'),
+    '    ' + c.cyan('$ lfg doctor'),
+    '',
+    c.dim('Run ') + c.cyan('lfg help') + c.dim(' for the full command list.'),
+  ]);
 }
 
 async function chooseProjectsDir(defaultPath) {

@@ -28,11 +28,7 @@ const COMMANDS = {
 
 async function run(cmdName, args) {
   const modPath = COMMANDS[cmdName];
-  if (!modPath) {
-    console.error(c.red(`unknown command: ${cmdName}`));
-    console.error(`run ${c.cyan('lfg help')} for a list`);
-    process.exit(1);
-  }
+  if (!modPath) throw new Error(`Internal: no module for command "${cmdName}"`);
   const mod = await import(modPath);
   await mod.default({ args, pkgRoot: PKG_ROOT });
 }
@@ -55,7 +51,9 @@ async function main() {
     return run(argv[0], argv.slice(1));
   }
 
-  // First-run guard: if no config, run setup wizard
+  // First-run guard: if no config, run setup wizard.
+  // This intentionally precedes the unknown-command check — a new user
+  // mistyping a command should still get walked through setup, not an error.
   const cfg = loadConfig();
   if (!cfg) {
     banner();
@@ -64,7 +62,19 @@ async function main() {
     return;
   }
 
-  // Default: launch (no args = picker, with name = direct launch)
+  // Config present + unrecognized non-flag arg → it's a typo, not a project name.
+  // (Direct `lfg <projectname>` launch is reserved for v1.1; today launch ignores args.)
+  if (argv[0] && !argv[0].startsWith('-')) {
+    const { errorBlock } = await import('../src/ui.mjs');
+    errorBlock({
+      what: `Unknown command: ${argv[0]}`,
+      fix: 'lfg help',
+      more: 'See all available commands',
+      exitCode: 1,
+    });
+  }
+
+  // Default: launch picker
   return run('launch', argv);
 }
 

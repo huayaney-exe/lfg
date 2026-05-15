@@ -4,15 +4,22 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
-import { c, banner, info, blank } from '../ui.mjs';
+import { c, banner, info, blank, errorBlock } from '../ui.mjs';
 import { loadConfig } from '../config.mjs';
 
 export default async function list({ args }) {
   const cfg = loadConfig();
   if (!cfg) {
-    if (args?.includes('--json')) { console.log(JSON.stringify({ error: 'no-config' })); process.exit(1); }
-    console.log('  ' + c.yellow('No config. Run ') + c.cyan('lfg setup') + c.yellow(' first.'));
-    process.exit(1);
+    if (args?.includes('--json')) {
+      console.log(JSON.stringify({ error: 'no-config' }));
+      process.exit(1);
+    }
+    errorBlock({
+      what: 'No lfg config found',
+      why: "You haven't run setup yet",
+      fix: 'lfg setup',
+      exitCode: 1,
+    });
   }
 
   const json = args?.includes('--json');

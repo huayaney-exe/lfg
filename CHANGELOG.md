@@ -1,5 +1,58 @@
 # Changelog
 
+## 1.0.2 — 2026-05-15
+
+### Didactic UX pass
+
+Real users hit two predictable failure modes on v1.0.1:
+
+1. After `install.sh` finished (Path 3 — reconfigured npm prefix), the
+   "reload your shell" instruction was a one-liner buried below the install
+   output. Users ran `lfg` immediately, got `command not found`, and got
+   stuck.
+2. Windows users (PowerShell) followed the README's curl|bash one-liner and
+   hit "bash: command not found" — bash doesn't exist on default Windows.
+   The README didn't differentiate platforms.
+
+This release fixes both by adopting a consistent "teaching" pattern across
+every surface where a user can get confused:
+
+**Pattern A — Framed box for milestone moments.** A Unicode-bordered box
+with numbered next-step options and a "Why?" footnote. Used at the end of
+`install.sh` and at the end of `lfg setup`. Impossible to miss.
+
+**Pattern B — 4-line error block.** Every error in every subcommand now
+follows `✗ what failed` / `Why:` / `Fix:` / `More:`. Replaces the previous
+mixed bag of one-liners. Errors become teaching moments.
+
+**Pattern C — Concept line under wizard prompts.** Each setup-wizard
+section now has a 1–2 line explanation of what the choice means and what
+happens after.
+
+**Pattern D — Platform-specific install instructions.** README now leads
+with three clearly-labeled commands (Windows, macOS/Linux with Bun,
+macOS/Linux with npm) instead of a single one-liner that breaks for one
+of the three groups.
+
+### Added
+- `print_box` helper in `install.sh` — Unicode-bordered teaching box with
+  auto-sized width, ANSI-aware padding.
+- `box()` + `errorBlock()` helpers in `src/ui.mjs` — same pattern for the
+  Node CLI.
+- Unknown-command guard in `bin/lfg.mjs` — `lfg foo` (with config present)
+  now errors with `Fix: lfg help` instead of silently passing through.
+
+### Changed
+- `install.sh` post-install message replaced with the framed box on all 3
+  install paths (Bun / npm-writable / reconfigured-prefix). The
+  reconfigured-prefix box includes the "Why?" explanation of why a shell
+  reload is needed.
+- README install section rewritten: platform-specific one-liners, plain-English
+  explanation of what the curl|bash does, verification snippet, and a clear
+  "open a new terminal if `lfg: command not found`" tip.
+- Every subcommand's "no config" error now uses `errorBlock()` instead of
+  ad-hoc text.
+
 ## 1.0.1 — 2026-05-15
 
 ### Added
