@@ -10,6 +10,7 @@ const TOPICS = {
   remove:    'Unregister a project: lfg remove <name>',
   config:    'View / change config. `lfg config` for current values.',
   doctor:    'Diagnose install, deps, and config issues. Supports --json.',
+  update:    'Check for and install the latest lfg-cli. --check / --yes / --force.',
   uninstall: 'Remove lfg config + legacy zsh alias.',
   help:      'This message. `lfg help <command>` for detail.',
 };

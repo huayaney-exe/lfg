@@ -22,6 +22,7 @@ const COMMANDS = {
   rm:        '../src/commands/remove.mjs',
   config:    '../src/commands/config.mjs',
   doctor:    '../src/commands/doctor.mjs',
+  update:    '../src/commands/update.mjs',
   uninstall: '../src/commands/uninstall.mjs',
   help:      '../src/commands/help.mjs',
 };

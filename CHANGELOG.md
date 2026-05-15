@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.2.0 — 2026-05-15
+
+### Added
+- `lfg update` command. Checks the npm registry for the latest `lfg-cli`,
+  prompts, then runs `npm i -g lfg-cli@<latest>`. Flags:
+  - `--check` — print local vs latest only; exits 1 if behind, 0 if current.
+  - `--yes` / `-y` — skip the confirmation prompt.
+  - `--force` — reinstall even when already on the latest version.
+- 8-second timeout on the registry request so a black-holed network can't
+  hang the command indefinitely.
+
+### Why
+Before this, the only way to update was for users to remember
+`npm i -g lfg-cli@latest` — invisible affordance, easy to drift. Bundling
+it under `setup` would have hidden the entry point behind a wizard most
+users run once, so `update` lives at the top level.
+
+### Note on scripts refresh
+`npm i -g` doesn't touch `~/.config/lfg/scripts/` — the bundled scripts
+there get refreshed by `lfg setup` → "Update scripts only". The update
+command prints this reminder after a successful install. A future release
+may run the refresh automatically.
+
 ## 1.1.0 — 2026-05-15
 
 ### Added

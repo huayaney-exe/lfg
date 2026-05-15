@@ -31,7 +31,15 @@ test('help lists known commands', () => {
   assert.equal(r.status, 0);
   assert.match(r.stdout, /setup/);
   assert.match(r.stdout, /doctor/);
+  assert.match(r.stdout, /update/);
   assert.match(r.stdout, /uninstall/);
+});
+
+test('help update shows the update topic', () => {
+  const r = run(['help', 'update']);
+  assert.equal(r.status, 0);
+  assert.match(r.stdout, /lfg update/);
+  assert.match(r.stdout, /latest/i);
 });
 
 test('unknown command exits non-zero', () => {
