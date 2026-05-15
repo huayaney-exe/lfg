@@ -19,20 +19,30 @@ Supports Claude Code, Codex CLI, Cursor Agent, Aider, Gemini CLI, GitHub Copilot
 
 ## Install
 
-```sh
-npm i -g lfg-cli     # or: bun i -g lfg-cli
-lfg                  # first run launches the setup wizard
-```
-
-Or try without installing globally:
+**One-line installer** (recommended — auto-handles npm permissions, never uses sudo):
 
 ```sh
-npx lfg-cli          # bunx lfg-cli
+curl -fsSL https://raw.githubusercontent.com/huayaney-exe/lfg/main/install.sh | bash
 ```
 
-### Hitting `EACCES` on macOS / Linux?
+The script picks Bun if you have it, falls back to npm, and reconfigures the npm prefix to a user-owned dir if needed.
 
-If `npm i -g` fails with `permission denied` writing to `/usr/local/lib/node_modules/`, that's a standard npm permission issue with the default Node install — not specific to `lfg-cli`. Pick one fix:
+**Or install manually with your package manager:**
+
+```sh
+npm i -g lfg-cli              # or: bun i -g lfg-cli
+lfg                           # first run launches the setup wizard
+```
+
+**Or try without installing globally:**
+
+```sh
+npx lfg-cli                   # bunx lfg-cli
+```
+
+### Hitting `EACCES` with manual `npm i -g`?
+
+The one-line installer above handles this automatically. If you prefer to fix it yourself:
 
 ```sh
 # Easiest: install via Bun (manages globals in user-owned dir)

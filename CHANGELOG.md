@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.1 — 2026-05-15
+
+### Added
+- `install.sh` — one-line bootstrap installer
+  (`curl -fsSL https://raw.githubusercontent.com/huayaney-exe/lfg/main/install.sh | bash`).
+  Handles the standard macOS/Linux `EACCES` from `npm i -g` writing to
+  `/usr/local/lib/node_modules/` without using sudo. Auto-detects Bun,
+  falls back to npm, and reconfigures the npm prefix to `~/.npm-global`
+  when the system prefix needs root.
+
+### Changed
+- README leads with the one-line installer; manual `npm i -g` / `bun i -g`
+  paths kept as alternatives.
+
 ## 1.0.0 — 2026-05-15
 
 First Node-CLI release.
